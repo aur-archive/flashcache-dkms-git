@@ -1,0 +1,20 @@
+# vim:set ft=sh:
+# from flashcache-git/src/util/flashcache_scan
+run_hook ()
+{
+    msg   "Scanning for flashcache devices"
+    echo   "Waiting for udev to settle..."
+    /sbin/udevadm settle --timeout=30
+
+    PARTITIONS=$(awk '{ print $NF; }' < /proc/partitions | while read line; do if [[ "$line" ]] && [[ "$line" != "name" ]] ; then echo "$line"; fi; done)
+    for P in $PARTITIONS; do {
+        if /sbin/flashcache_load "/dev/$P"  2> /dev/null; then
+            echo "Loaded flashcache device from /dev/$P"
+        fi
+    } &
+    done
+    wait
+    msg "Flashcache scanning done."
+
+}
+
